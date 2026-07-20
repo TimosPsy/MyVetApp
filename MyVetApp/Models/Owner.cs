@@ -9,9 +9,5 @@
         public int UserId { get; set; }
         public User User { get; set; } = null!;
         public ICollection<Pet> Pets { get; set; } = new HashSet<Pet>();
-
-       
-
-
     }
 }
