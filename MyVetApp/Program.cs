@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace MyVetApp
 {
     public class Program
@@ -5,6 +7,12 @@ namespace MyVetApp
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var connString = builder.Configuration.GetConnectionString("DevConnection");
+
+            //Scoped - per request
+            builder.Services.AddDbContext<Data.VetMvc9Context>(options =>
+                options.UseSqlServer(connString));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
