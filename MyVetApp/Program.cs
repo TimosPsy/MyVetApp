@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyVetApp.Security;
 
 namespace MyVetApp
 {
@@ -14,8 +15,7 @@ namespace MyVetApp
             builder.Services.AddDbContext<Data.VetMvc9Context>(options =>
                 options.UseSqlServer(connString));
 
-            // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddSingleton<IEncryptionUtil, EncryptionUtil>();
 
             var app = builder.Build();
 
