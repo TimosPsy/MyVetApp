@@ -12,7 +12,14 @@ namespace MyVetApp.Repositories
         {
         }
 
-        public async Task<PaginatedResult<Pet>> GetPaginatedPetsAsync(int pageNumber, int pageSize, List<Expression<Func<Pet, bool>>> predicates)
+        public async Task<Pet?> GetByMicrochipNumberAsync(string? chipNumber)
+        {
+            return await _context.Pets
+                .Where(p => p.MicrochipNumber == chipNumber)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<PaginatedResult<Pet>> GetPaginatedPetsFilteredAsync(int pageNumber, int pageSize, List<Expression<Func<Pet, bool>>> predicates)
         {
             IQueryable<Pet> query = _context.Pets;
 
@@ -27,7 +34,8 @@ namespace MyVetApp.Repositories
             int totalRecords = await query.CountAsync();
             int skip = (pageNumber - 1) * pageSize;
 
-            var data = await query.OrderBy(p => p.Id)
+            var data = await query
+                .OrderBy(p => p.Id)
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
@@ -40,16 +48,12 @@ namespace MyVetApp.Repositories
                 PageSize = pageSize
             };
         }
-
-
+        
         public async Task<Owner?> GetPetOwnerAsync(int petId)
         {
-            var pet = await _context.Pets
-                .Include(p => p.Owner)
-                .ThenInclude(o => o!.User)
-                .FirstOrDefaultAsync(c => c.Id == petId);
-
-            return pet?.Owner;
+            return await _context.Owners
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(o => o.Pets.Any(c => c.Id == petId));
         }
     }
 }

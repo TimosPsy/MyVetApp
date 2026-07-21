@@ -6,11 +6,13 @@ namespace MyVetApp.Repositories
 {
     public interface IOwnerRepository : IBaseRepository<Owner>
     {
+        Task<Owner?> GetByVatAsync(string? vat);
+
         Task<List<Pet>> GetOwnerPetsAsync(int ownerId);
 
         Task<User?> GetUserOwnerByUsernameAsync(string username);
 
-        Task<PaginatedResult<User>> GetPaginatedOwnersAsync(int pageNumber,
+        Task<PaginatedResult<User>> GetPaginatedOwnersFilteredAsync(int pageNumber,
             int pageSize, List<Expression<Func<User, bool>>> predicates);
     }
 }

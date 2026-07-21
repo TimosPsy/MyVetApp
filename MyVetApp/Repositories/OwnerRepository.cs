@@ -12,18 +12,25 @@ namespace MyVetApp.Repositories
         {
         }
 
+        public async Task<Owner?> GetByVatAsync(string? vat)
+        {
+            return await _context.Owners
+                .Where(o => o.VatNumber == vat)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<List<Pet>> GetOwnerPetsAsync(int ownerId)
         {
             List<Pet> pets;
 
-            pets = await _context.Pets
+             pets = await _context.Pets
                 .Where(c => c.OwnerId == ownerId)
                 .ToListAsync();
 
             return pets;
         }
 
-        public async Task<PaginatedResult<User>> GetPaginatedOwnersAsync(int pageNumber, int pageSize, List<Expression<Func<User, bool>>> predicates)
+        public async Task<PaginatedResult<User>> GetPaginatedOwnersFilteredAsync(int pageNumber, int pageSize, List<Expression<Func<User, bool>>> predicates)
         {
             int totalRecords;
 
@@ -62,7 +69,7 @@ namespace MyVetApp.Repositories
             var userOwner = await _context.Users
                 .Include(u => u.Owner)
                 .Where(u => u.Username == username && u.Owner != null)
-                .FirstOrDefaultAsync();
+                .SingleOrDefaultAsync();
 
             return userOwner;
         }

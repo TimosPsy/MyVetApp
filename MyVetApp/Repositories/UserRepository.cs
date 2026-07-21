@@ -26,14 +26,14 @@ namespace MyVetApp.Repositories
             {
                 foreach (var predicate in predicates)
                 {
-                    query = query.Where(predicate); // υπονοείται το AND
+                    query = query.Where(predicate); 
                 }
             }
             totalRecords = await query.CountAsync();
             int skip = (pageNumber - 1) * pageSize;
 
             var data = await query
-                .OrderBy(u => u.Id) // Πάντα OrderBy για να διασφαλίσουμε την σταθερή σειρά των αποτελεσμάτων
+                .OrderBy(u => u.Id) 
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
