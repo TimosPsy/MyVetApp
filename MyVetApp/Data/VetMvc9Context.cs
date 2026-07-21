@@ -33,6 +33,7 @@ public class VetMvc9Context : DbContext
 
         modelBuilder.Entity<Pet>(entity =>
         {
+            entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Species).HasMaxLength(15);
             entity.Property(e => e.Breed).HasMaxLength(15);
             entity.Property(e => e.Gender).HasMaxLength(10);
