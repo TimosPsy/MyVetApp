@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using MyVetApp.Configuration;
+using MyVetApp.Repositories;
 using MyVetApp.Security;
+using Serilog;
+
 
 namespace MyVetApp
 {
@@ -9,13 +13,18 @@ namespace MyVetApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Host.UseSerilog((hostingContext, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(hostingContext.Configuration);
+            });
+
             var connString = builder.Configuration.GetConnectionString("DevConnection");
 
             //Scoped - per request
             builder.Services.AddDbContext<Data.VetMvc9Context>(options =>
                 options.UseSqlServer(connString));
 
-            builder.Services.AddSingleton<IEncryptionUtil, EncryptionUtil>();
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperConfig>());
 
             var app = builder.Build();
 
