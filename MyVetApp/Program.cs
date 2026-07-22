@@ -26,6 +26,8 @@ namespace MyVetApp
 
             builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperConfig>());
 
+            builder.Services.AddRepositories();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
