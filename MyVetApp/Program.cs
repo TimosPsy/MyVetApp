@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyVetApp.Configuration;
 using MyVetApp.Repositories;
 using MyVetApp.Security;
+using MyVetApp.Services;
 using Serilog;
 
 
@@ -24,10 +25,17 @@ namespace MyVetApp
             builder.Services.AddDbContext<Data.VetMvc9Context>(options =>
                 options.UseSqlServer(connString));
 
-            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperConfig>());
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IOwnerService, OwnerService>();
+            builder.Services.AddScoped<IPetService, PetService>();
+            builder.Services.AddScoped<IApplicationService, ApplicationService>();
+
+            builder.Services.AddSingleton<IEncryptionUtil, EncryptionUtil>();
 
             builder.Services.AddRepositories();
 
+            builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperConfig>());
+           
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
