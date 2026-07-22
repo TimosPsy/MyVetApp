@@ -1,6 +1,6 @@
 ﻿namespace MyVetApp.Models
 {
-    public class Pet
+    public class Pet : BaseEntity
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
