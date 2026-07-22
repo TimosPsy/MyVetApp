@@ -17,6 +17,8 @@ namespace MyVetApp.Configuration
 
             CreateMap<OwnerSignupDTO, Owner>();
 
+            CreateMap<Owner, OwnerReadOnlyDTO>();
+
             CreateMap<PetSignupDTO, Pet>();
 
             CreateMap<Pet, PetReadOnlyDTO>();
