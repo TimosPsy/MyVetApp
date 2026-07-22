@@ -12,7 +12,7 @@ namespace MyVetApp.Repositories
 
         Task<User?> GetUserOwnerByUsernameAsync(string username);
 
-        Task<PaginatedResult<User>> GetPaginatedOwnersFilteredAsync(int pageNumber,
+        Task<PaginatedResult<User>> GetPaginatedUsersOwnersFilteredAsync(int pageNumber,
             int pageSize, List<Expression<Func<User, bool>>> predicates);
     }
 }

@@ -30,13 +30,13 @@ namespace MyVetApp.Repositories
             return pets;
         }
 
-        public async Task<PaginatedResult<User>> GetPaginatedOwnersFilteredAsync(int pageNumber, int pageSize, List<Expression<Func<User, bool>>> predicates)
+        public async Task<PaginatedResult<User>> GetPaginatedUsersOwnersFilteredAsync(int pageNumber, int pageSize, List<Expression<Func<User, bool>>> predicates)
         {
             int totalRecords;
 
             IQueryable<User> query = _context.Users
                 .Include(t => t.Owner)
-                .Where(t => t.Owner != null);
+                .Where(t => t.Owner != null && !t.IsDeleted);
 
             if (predicates != null && predicates.Count > 0)
             {
