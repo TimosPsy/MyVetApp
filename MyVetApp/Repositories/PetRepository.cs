@@ -53,7 +53,7 @@ namespace MyVetApp.Repositories
         {
             return await _context.Owners
                 .Include(p => p.User)
-                .FirstOrDefaultAsync(o => o.Pets.Any(c => c.Id == petId));
+                .FirstOrDefaultAsync(o => o.Pets.Any(c => c.Id == petId) && !o.IsDeleted);
         }
     }
 }
