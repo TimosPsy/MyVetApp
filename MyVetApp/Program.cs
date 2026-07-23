@@ -97,7 +97,6 @@ namespace MyVetApp
                     policy.WithOrigins(builder.Configuration["Cors:Origin"]!)
                     .AllowAnyMethod()
                     .AllowAnyHeader());
-               
             });
 
             builder.Services.AddControllers().AddJsonOptions(options =>
@@ -107,18 +106,25 @@ namespace MyVetApp
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
 
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                app.UseSwagger();
+                app.UseSwaggerUI();
+                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyVet App v1"));
+                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "MyVet App v2"));
             }
 
             app.UseHttpsRedirection();
 
+            app.UseCors("AllowClient");
             app.UseAuthentication();
             app.UseAuthorization();
 
