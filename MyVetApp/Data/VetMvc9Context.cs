@@ -47,7 +47,7 @@ public class VetMvc9Context : DbContext
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Pets_OwnerId");
 
-            entity.HasIndex(e => e.MicrochipNumber, "IX_Pets_MicrochipNumber").IsUnique();
+            entity.HasIndex(e => e.MicrochipNumber, "IX_Pets_MicrochipNumber").IsUnique().HasFilter("[MicrochipNumber] IS NOT NULL");
             entity.HasIndex(e => e.OwnerId, "IX_Pets_OwnerId");
         });
 
@@ -68,7 +68,7 @@ public class VetMvc9Context : DbContext
         modelBuilder.Entity<Owner>(entity =>
         {
             entity.Property(e => e.PhoneNumber).HasMaxLength(50);
-            entity.Property(e => e.VatNumber).HasMaxLength(9);
+            entity.Property(e => e.VatNumber).HasMaxLength(9).HasColumnName("ΑΦΜ");
 
             entity.HasOne(d => d.User).WithOne(p => p.Owner)
                 .HasForeignKey<Owner>(d => d.UserId)
