@@ -12,7 +12,7 @@ namespace MyVetApp.Repositories
         {
         }
 
-        public async Task<Owner?> GetByVatAsync(string? vat)
+        public async Task<Owner?> GetByVatAsync(string vat)
         {
             return await _context.Owners
                 .Where(o => o.VatNumber == vat)

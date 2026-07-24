@@ -12,7 +12,7 @@ namespace MyVetApp.Repositories
         {
         }
 
-        public async Task<Pet?> GetByMicrochipNumberAsync(string? chipNumber)
+        public async Task<Pet?> GetByMicrochipNumberAsync(string chipNumber)
         {
             return await _context.Pets
                 .Where(p => p.MicrochipNumber == chipNumber)

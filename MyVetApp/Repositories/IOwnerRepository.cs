@@ -6,7 +6,7 @@ namespace MyVetApp.Repositories
 {
     public interface IOwnerRepository : IBaseRepository<Owner>
     {
-        Task<Owner?> GetByVatAsync(string? vat);
+        Task<Owner?> GetByVatAsync(string vat);
 
         Task<List<Pet>> GetOwnerPetsAsync(int ownerId);
 

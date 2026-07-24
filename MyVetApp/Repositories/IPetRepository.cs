@@ -6,7 +6,7 @@ namespace MyVetApp.Repositories
 {
     public interface IPetRepository : IBaseRepository<Pet>
     {
-        Task<Pet?> GetByMicrochipNumberAsync(string? chipNumber);
+        Task<Pet?> GetByMicrochipNumberAsync(string chipNumber);
 
         Task<Owner?> GetPetOwnerAsync(int petId);
 
