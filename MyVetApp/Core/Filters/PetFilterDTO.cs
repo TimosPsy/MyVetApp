@@ -7,6 +7,6 @@
         public string? Gender { get; set; }
         public bool? IsNeutered { get; set; }
 
-        public int? OnwerId { get; set; }
+        public int? OwnerId { get; set; }
     }
 }

@@ -30,19 +30,16 @@ namespace MyVetApp.Services
 
         public async Task<OwnerReadOnlyDTO?> GetPetOwnerAsync(int petId)
         {
-            var owner = await _unitOfWork.PetRepository.GetPetOwnerAsync(petId);
+            Owner? existingOwner = await _unitOfWork.PetRepository.GetPetOwnerAsync(petId);
 
-            if (owner == null)
+            if (existingOwner == null)
             {
                 _logger.LogWarning("No owner found for pet with ID {PetId} (Stray pet or invalid ID)", petId);
                 return null;
             }
 
-            var existingOwner = _mapper.Map<OwnerReadOnlyDTO>(owner);
-
-            _logger.LogInformation("Successfully retrieved owner details for pet with ID {PetId}", petId);
-            
-            return existingOwner;
+            _logger.LogInformation("Successfully retrieved owner details for pet with ID {PetId}", petId);           
+            return _mapper.Map<OwnerReadOnlyDTO>(existingOwner);
         }
 
         public async Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredAsync(int pageNumber, int pageSize, PetFilterDTO filterDTO)
@@ -65,6 +62,10 @@ namespace MyVetApp.Services
             {
                 predicates.Add(p => p.IsNeutered == filterDTO.IsNeutered.Value);
             }
+            if (filterDTO.OwnerId.HasValue)
+            {
+                predicates.Add(p => p.OwnerId == filterDTO.OwnerId);
+            }
 
             var result = await _unitOfWork.PetRepository.GetPaginatedPetsFilteredAsync(pageNumber, pageSize, predicates);
 
@@ -83,12 +84,12 @@ namespace MyVetApp.Services
 
         public async Task<PetReadOnlyDTO> RegisterPetAsync(PetSignupDTO dto)
         {
-            var pet = _mapper.Map<Pet>(dto);
+            Pet pet = _mapper.Map<Pet>(dto);
 
-            var existingPet = await _unitOfWork.PetRepository.GetByMicrochipNumberAsync(pet.MicrochipNumber);
+            Pet? existingPet = await _unitOfWork.PetRepository.GetByIdAsync(pet.Id);
             if( existingPet != null)
             {
-                throw new EntityAlreadyExistsException("Pet", $"Pet with chip number {pet.MicrochipNumber} already exists");
+                throw new EntityAlreadyExistsException("Pet", $"Pet with ID: {pet.Id} already exists");
             }
 
             await _unitOfWork.PetRepository.AddAsync(pet);
@@ -100,11 +101,11 @@ namespace MyVetApp.Services
 
         public async Task<PetReadOnlyDTO> SoftDeletePetAsync(int id)
         {
-            var pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
+            Pet? pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
 
             if (pet == null)
             {
-                throw new EntityNotFoundException("Pet", $"Pet with Id {pet.Id} not found!");
+                throw new EntityNotFoundException("Pet", $"Pet with Id {id} not found!");
             }
 
             pet.IsDeleted = true;
