@@ -20,7 +20,7 @@ namespace MyVetApp.DTO
         public string? Gender { get; set; }
 
         [Required(ErrorMessage = "The {0} field is required.")]
-        public bool IsNeutered { get; set; }
+        public bool? IsNeutered { get; set; }
 
         [Range(0.1, 100.0, ErrorMessage = "Weight must be between 0.1 and 100 kg.")]
         public double? Weight { get; set; }
