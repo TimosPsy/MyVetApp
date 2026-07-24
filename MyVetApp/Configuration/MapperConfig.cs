@@ -15,13 +15,11 @@ namespace MyVetApp.Configuration
             CreateMap<OwnerSignupDTO, User>()
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId!.Value));
 
-            CreateMap<OwnerSignupDTO, Owner>();
-
-            CreateMap<Owner, OwnerReadOnlyDTO>();
-
-            CreateMap<PetSignupDTO, Pet>();
+             CreateMap<PetSignupDTO, Pet>();
 
             CreateMap<Pet, PetReadOnlyDTO>();
+
+            CreateMap<Owner, OwnerReadOnlyDTO>();
         }
     }
 }
