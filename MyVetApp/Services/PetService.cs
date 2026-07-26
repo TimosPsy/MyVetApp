@@ -98,7 +98,7 @@ namespace MyVetApp.Services
         {
             Pet pet = _mapper.Map<Pet>(dto);
 
-            Pet? existingPet = await _unitOfWork.PetRepository.GetByIdAsync(pet.Id);
+            var existingPet = await _unitOfWork.PetRepository.GetByIdAsync(pet.Id);
             if( existingPet != null)
             {
                 throw new EntityAlreadyExistsException("Pet", $"Pet with ID: {pet.Id} already exists");
@@ -113,7 +113,7 @@ namespace MyVetApp.Services
 
         public async Task<PetReadOnlyDTO> SoftDeletePetAsync(int id)
         {
-            Pet? pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
+            var pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
 
             if (pet == null)
             {
