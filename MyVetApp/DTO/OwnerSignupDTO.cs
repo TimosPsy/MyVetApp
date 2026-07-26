@@ -38,6 +38,6 @@ namespace MyVetApp.DTO
         public string? VatNumber { get; set; }
 
         [Required(ErrorMessage = "The {0} field is required.")]
-        public int? RoleId { get; set; }
+        public int? RoleId { get; set; } 
     }
 }
