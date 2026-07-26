@@ -15,11 +15,11 @@ namespace MyVetApp.Services
         private readonly IEncryptionUtil _encryptionUtil;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ILogger<UserService> _logger;
+        private readonly ILogger<PetService> _logger;
         private readonly IConfiguration _configuration;
 
         public PetService(IUnitOfWork unitOfWork, IMapper mapper,
-            ILogger<UserService> logger, IEncryptionUtil encryptionUtil, IConfiguration configuration)
+            ILogger<PetService> logger, IEncryptionUtil encryptionUtil, IConfiguration configuration)
         {
             _encryptionUtil = encryptionUtil;
             _unitOfWork = unitOfWork;
@@ -28,9 +28,21 @@ namespace MyVetApp.Services
             _configuration = configuration;
         }
 
+        public async Task<PetReadOnlyDTO> GetByIdAsync(int petId)
+        {
+           var pet = await _unitOfWork.PetRepository.GetByIdAsync(petId);
+            if( pet == null)
+            {
+                throw new EntityNotFoundException("Pet", $"Pet with Id {petId} not found.");
+            }
+
+            _logger.LogInformation("Pet with Id {id} found", petId);
+            return _mapper.Map<PetReadOnlyDTO>(pet);
+        }
+
         public async Task<OwnerReadOnlyDTO?> GetPetOwnerAsync(int petId)
         {
-            Owner? existingOwner = await _unitOfWork.PetRepository.GetPetOwnerAsync(petId);
+            var existingOwner = await _unitOfWork.PetRepository.GetPetOwnerAsync(petId);
 
             if (existingOwner == null)
             {

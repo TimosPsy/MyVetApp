@@ -8,6 +8,7 @@ namespace MyVetApp.Services
     {
         Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredAsync(int pageNumber, int pageSize,
             PetFilterDTO petFiltersDTO);
+        Task<PetReadOnlyDTO> GetByIdAsync(int petId);
 
         Task<PetReadOnlyDTO> RegisterPetAsync(PetSignupDTO dto);
 
