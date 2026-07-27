@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyVetApp.Configuration;
+using MyVetApp.Helpers;
 using MyVetApp.Repositories;
 using MyVetApp.Security;
 using MyVetApp.Services;
-using SchoolApp.Helpers;
 using Serilog;
 using System.Reflection;
 using System.Text;
@@ -72,7 +72,7 @@ namespace MyVetApp
 
             builder.Services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new OpenApiInfo { Title = "School App", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Vet App", Version = "v1" });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
@@ -108,6 +108,11 @@ namespace MyVetApp
 
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             builder.Services.AddProblemDetails();
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("VIEW_USERS", p => p.RequireClaim("capability", "VIEW_USERS"));
+            });
 
             var app = builder.Build();
 
