@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyVetApp.Exceptions;
 
-namespace SchoolApp.Helpers
+namespace MyVetApp.Helpers
 {
     public class GlobalExceptionHandler : IExceptionHandler
     {
