@@ -11,7 +11,7 @@
         public double? Weight { get; set; }
         public string? MicrochipNumber { get; set; }
 
-        public int? OwnerId { get; set; }
-        public Owner? Owner { get; set; }
+        public int OwnerId { get; set; }
+        public Owner Owner { get; set; } = null!;
     }
 }

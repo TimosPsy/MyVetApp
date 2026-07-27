@@ -29,7 +29,7 @@ namespace MyVetApp.DTO
         [RegularExpression(@"^\d*$", ErrorMessage = "Microchip Number must contain only digits.")]
         public string? MicrochipNumber { get; set; }
 
-
+        [Required(ErrorMessage ="The Owner ID is required")]
         public int? OwnerId { get; set; }
     }
 }

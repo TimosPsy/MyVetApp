@@ -1,15 +1,17 @@
 ﻿namespace MyVetApp.DTO
 {
-    public record PetReadOnlyDTO(
-        int Id, 
-        string Name,
-        string Species,
-        string? Breed,
-        string Gender,
-        bool IsNeutered,
-        double? Weight,
-        string? MicrochipNumber,
+    public record PetReadOnlyDTO
+    {
 
-        int? OwnerId
-    );
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string Species { get; set; } = null!;
+        public string? Breed { get; set; } 
+        public string Gender { get; set; } = null!;
+        public bool IsNeutered { get; set; } 
+        public double? Weight { get; set; } 
+        public string? MicrochipNumber { get; set; }
+
+        public int OwnerId { get; set; } 
+    };
 }
