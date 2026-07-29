@@ -6,9 +6,9 @@ namespace MyVetApp.Repositories
 {
     public interface IPetRepository : IBaseRepository<Pet>
     {
-        Task<Pet?> GetByMicrochipNumberAsync(string chipNumber);
+        new Task<Pet?> GetByIdAsync(int id);
 
-        Task<Owner?> GetPetOwnerAsync(int petId);
+        Task<Pet?> GetByMicrochipNumberAsync(string chipNumber);
 
         Task<PaginatedResult<Pet>> GetPaginatedPetsFilteredAsync(int pageNumber,
                 int pageSize, List<Expression<Func<Pet, bool>>> predicates);

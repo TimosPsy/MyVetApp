@@ -12,6 +12,14 @@ namespace MyVetApp.Repositories
         {
         }
 
+        //include owner for eager loading and access to owner.userId
+        public new async Task<Pet?> GetByIdAsync(int id)
+        {
+            return await _context.Pets
+                .Include(p => p.Owner)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
         public async Task<Pet?> GetByMicrochipNumberAsync(string chipNumber)
         {
             return await _context.Pets
@@ -47,13 +55,6 @@ namespace MyVetApp.Repositories
                 PageNumber = pageNumber,
                 PageSize = pageSize
             };
-        }
-        
-        public async Task<Owner?> GetPetOwnerAsync(int petId)
-        {
-            return await _context.Owners
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(o => o.Pets.Any(c => c.Id == petId) && !o.IsDeleted);
         }
     }
 }
