@@ -8,6 +8,7 @@ using MyVetApp.Repositories;
 using MyVetApp.Security;
 using MyVetApp.Services;
 using Serilog;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -19,6 +20,8 @@ namespace MyVetApp
     {
         public static void Main(string[] args)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Host.UseSerilog((hostingContext, configuration) =>
@@ -111,7 +114,11 @@ namespace MyVetApp
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("VIEW_USERS", p => p.RequireClaim("capability", "VIEW_USERS"));
+                options.AddPolicy("INSERT_PET", p => p.RequireClaim("capability", "INSERT_PET"));
+                options.AddPolicy("DELETE_PET", p => p.RequireClaim("capability", "DELETE_PET"));
+                options.AddPolicy("UPDATE_PET", p => p.RequireClaim("capability", "EDIT_PET"));
+                options.AddPolicy("VIEW_OWNER", p => p.RequireClaim("capability", "VIEW_OWNER"));
+                options.AddPolicy("VIEW_PETS", p => p.RequireClaim("capability", "VIEW_PETS"));
             });
 
             var app = builder.Build();
