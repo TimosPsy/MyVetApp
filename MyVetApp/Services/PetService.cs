@@ -7,6 +7,7 @@ using MyVetApp.Models;
 using MyVetApp.Repositories;
 using MyVetApp.Security;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace MyVetApp.Services
 {
@@ -28,35 +29,56 @@ namespace MyVetApp.Services
             _configuration = configuration;
         }
 
-        public async Task<PetReadOnlyDTO> GetByIdAsync(int petId)
+        public async Task<PetReadOnlyDTO> GetByIdWithSecurityAsync(int petId, ClaimsPrincipal userClaims)
         {
-           var pet = await _unitOfWork.PetRepository.GetByIdAsync(petId);
-            if( pet == null)
+            
+            var pet = await _unitOfWork.PetRepository.GetByIdAsync(petId);
+            if (pet == null)
             {
-                throw new EntityNotFoundException("Pet", $"Pet with Id {petId} not found.");
+                throw new EntityNotFoundException("Pet", $"Pet with Id {petId} not found!");
             }
+
+            var currentUserId = int.Parse(userClaims.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var canViewAll = userClaims.HasClaim("capability", "VIEW_PET") || userClaims.HasClaim("capability", "VIEW_PETS");
+
+            
+            var isOwnerOfPet = userClaims.HasClaim("capability", "VIEW_ONLY_OWN_PETS") && pet.Owner.UserId == currentUserId && !pet.IsDeleted;
+
+            if (!canViewAll && !isOwnerOfPet) throw new EntityForbiddenException("Pet", "Forbidden");
 
             _logger.LogInformation("Pet with Id {id} found", petId);
             return _mapper.Map<PetReadOnlyDTO>(pet);
         }
 
-        public async Task<OwnerReadOnlyDTO?> GetPetOwnerAsync(int petId)
+        public async Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredWithSecurityAsync(int pageNumber, int pageSize, PetFilterDTO filterDTO, ClaimsPrincipal user)
         {
-            var existingOwner = await _unitOfWork.PetRepository.GetPetOwnerAsync(petId);
 
-            if (existingOwner == null)
-            {
-                _logger.LogWarning("No owner found for pet with ID {PetId} (Stray pet or invalid ID)", petId);
-                return null;
-            }
-
-            _logger.LogInformation("Successfully retrieved owner details for pet with ID {PetId}", petId);           
-            return _mapper.Map<OwnerReadOnlyDTO>(existingOwner);
-        }
-
-        public async Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredAsync(int pageNumber, int pageSize, PetFilterDTO filterDTO)
-        {
             List<Expression<Func<Pet, bool>>> predicates = [];
+
+            var currentUserRole = user.FindFirst(ClaimTypes.Role)?.Value;
+
+            if(currentUserRole == "OWNER" && user.HasClaim("capability", "VIEW_ONLY_OWN_PETS"))
+            {
+                var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                predicates.Add(p => p.Owner.UserId == currentUserId);
+                predicates.Add(p => !p.IsDeleted);
+            }
+            else
+            {
+                if(!user.HasClaim("capability", "VIEW_PETS"))
+                {
+                    throw new EntityForbiddenException("Pet", "Forbidden");
+                }
+                if (filterDTO.OwnerId.HasValue)
+                {
+                    predicates.Add(p => p.OwnerId == filterDTO.OwnerId.Value);
+                }
+                if (!filterDTO.IncludeDeleted)
+                {
+                    predicates.Add(p => !p.IsDeleted);
+                }
+            }
 
             if (!string.IsNullOrEmpty(filterDTO.Name))
             {
@@ -74,10 +96,7 @@ namespace MyVetApp.Services
             {
                 predicates.Add(p => p.IsNeutered == filterDTO.IsNeutered.Value);
             }
-            if (filterDTO.OwnerId.HasValue)
-            {
-                predicates.Add(p => p.OwnerId == filterDTO.OwnerId);
-            }
+
 
             var result = await _unitOfWork.PetRepository.GetPaginatedPetsFilteredAsync(pageNumber, pageSize, predicates);
 
@@ -98,10 +117,19 @@ namespace MyVetApp.Services
         {
             Pet pet = _mapper.Map<Pet>(dto);
 
-            var existingPet = await _unitOfWork.PetRepository.GetByIdAsync(pet.Id);
-            if( existingPet != null)
+            var ownerExists = await _unitOfWork.OwnerRepository.GetByIdAsync(dto.OwnerId!.Value);
+            if(ownerExists == null)
             {
-                throw new EntityAlreadyExistsException("Pet", $"Pet with ID: {pet.Id} already exists");
+                throw new EntityNotFoundException("Owner", $"Cannot register pet. Owner with ID {dto.OwnerId.Value} does not exist.");
+            }
+
+            if (!string.IsNullOrEmpty(dto.MicrochipNumber))
+            {
+                var existingPet = await _unitOfWork.PetRepository.GetByMicrochipNumberAsync(dto.MicrochipNumber);
+                if (existingPet != null)
+                {
+                    throw new EntityAlreadyExistsException("Pet", $"Pet with Chip Number: {dto.MicrochipNumber} already exists");
+                }
             }
 
             await _unitOfWork.PetRepository.AddAsync(pet);
@@ -111,7 +139,7 @@ namespace MyVetApp.Services
             return _mapper.Map<PetReadOnlyDTO>(pet);
         }
 
-        public async Task<PetReadOnlyDTO> SoftDeletePetAsync(int id)
+        public async Task SoftDeletePetAsync(int id)
         {
             var pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
 
@@ -126,9 +154,35 @@ namespace MyVetApp.Services
             await _unitOfWork.PetRepository.UpdateAsync(pet);
             await _unitOfWork.SaveAsync();
 
-            return _mapper.Map<PetReadOnlyDTO>(pet);
+            _logger.LogInformation("Successfully deleted pet with id: {PetId}", id);
         }
 
+        public async Task<PetReadOnlyDTO> UpdatePetAsync(int id, PetUpdateDTO dto)
+        {
+            var pet = await _unitOfWork.PetRepository.GetByIdAsync(id);
 
+            if(pet == null || pet.IsDeleted)
+            {
+                throw new EntityNotFoundException("Pet", $"Pet with Id: {id} not found");
+            }
+
+            if (!string.IsNullOrEmpty(dto.MicrochipNumber))
+            {
+                var existingPet = await _unitOfWork.PetRepository.GetByMicrochipNumberAsync(dto.MicrochipNumber);
+
+                if (existingPet != null && existingPet.Id != id)
+                {
+                    throw new EntityAlreadyExistsException("Pet", $"Another pet with Chip Number: {dto.MicrochipNumber} already exists.");
+                }
+            }
+
+            _mapper.Map(dto, pet);
+
+            await _unitOfWork.PetRepository.UpdateAsync(pet);
+            await _unitOfWork.SaveAsync();
+
+            _logger.LogInformation("Successfully updated pet with ID {PetId}", id);
+            return _mapper.Map<PetReadOnlyDTO>(pet);
+        }
     }
 }

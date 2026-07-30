@@ -1,19 +1,21 @@
 ﻿using MyVetApp.Core;
 using MyVetApp.Core.Filters;
 using MyVetApp.DTO;
+using System.Security.Claims;
 
 namespace MyVetApp.Services
 {
     public interface IPetService
     {
-        Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredAsync(int pageNumber, int pageSize,
-            PetFilterDTO petFiltersDTO);
-        Task<PetReadOnlyDTO> GetByIdAsync(int petId);
+        Task<PaginatedResult<PetReadOnlyDTO>> GetPetsFilteredWithSecurityAsync(int pageNumber, int pageSize,
+            PetFilterDTO petFiltersDTO, ClaimsPrincipal claimsPrincipal);
+
+        Task<PetReadOnlyDTO> GetByIdWithSecurityAsync(int petId, ClaimsPrincipal userClaims);
 
         Task<PetReadOnlyDTO> RegisterPetAsync(PetSignupDTO dto);
 
-        Task<PetReadOnlyDTO> SoftDeletePetAsync(int id);
+        Task<PetReadOnlyDTO> UpdatePetAsync(int id, PetUpdateDTO dto);
 
-        Task<OwnerReadOnlyDTO?> GetPetOwnerAsync(int petId);
+        Task SoftDeletePetAsync(int petId);
     }
 }
