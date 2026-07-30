@@ -118,6 +118,15 @@ namespace MyVetApp.Services
                 new Claim(ClaimTypes.Role, user.Role.Name)
             };
 
+            //Add role capabilities in JWT token
+            if (user.Role?.Capabilities != null)
+            {
+                foreach (var rc in user.Role.Capabilities)
+                {
+                    claimsInfo.Add(new Claim("capability", rc.Name));
+                }
+            }
+
             var jwtSecurityToken = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
