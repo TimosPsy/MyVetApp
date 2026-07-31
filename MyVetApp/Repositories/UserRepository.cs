@@ -11,9 +11,14 @@ namespace MyVetApp.Repositories
         public UserRepository(VetMvc9Context context) : base(context)
         {
         }
+
+        public async Task<User?> GetUserByEmailAsync(string email) =>
+            await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        
         public async Task<User?> GetUserByUsernameAsync(string username) =>
             await _context.Users
             .Include(u => u.Role)
+            .ThenInclude(r => r.Capabilities)
             .FirstOrDefaultAsync(u => u.Username == username);
 
         public async Task<PaginatedResult<User>> GetUsersAsync(int pageNumber, int pageSize, 
