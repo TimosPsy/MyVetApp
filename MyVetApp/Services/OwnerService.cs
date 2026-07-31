@@ -65,6 +65,18 @@ namespace MyVetApp.Services
                 throw new EntityAlreadyExistsException("User", $"User with username {existingUser.Username} already exists");
             }
 
+            var existingEmail = await _unitOfWork.UserRepository.GetUserByEmailAsync(user.Email);
+            if(existingEmail != null)
+            {
+                throw new EntityAlreadyExistsException("User", $"User with email {user.Email} already exists.");
+            }
+            
+            var existingVat = await _unitOfWork.OwnerRepository.GetByVatAsync(owner.VatNumber);
+            if (existingVat != null)
+            {
+                throw new EntityAlreadyExistsException("Owner", $"Owner with vat number {owner.VatNumber} already exists.");
+            }
+
             user.Owner = owner;
             user.Password = _encryptionUtil.Encrypt(user.Password);
             

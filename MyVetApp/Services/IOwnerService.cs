@@ -1,7 +1,4 @@
-﻿using MyVetApp.Core;
-using MyVetApp.DTO;
-using MyVetApp.Models;
-
+﻿using MyVetApp.DTO;
 namespace MyVetApp.Services
 {
     public interface IOwnerService
