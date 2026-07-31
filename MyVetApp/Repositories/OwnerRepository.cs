@@ -24,7 +24,7 @@ namespace MyVetApp.Repositories
             List<Pet> pets;
 
              pets = await _context.Pets
-                .Where(c => c.OwnerId == ownerId)
+                .Where(c => c.OwnerId == ownerId && !c.IsDeleted)
                 .ToListAsync();
 
             return pets;
