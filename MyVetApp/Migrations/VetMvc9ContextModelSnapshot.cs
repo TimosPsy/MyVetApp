@@ -137,7 +137,7 @@ namespace MyVetApp.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int?>("OwnerId")
+                    b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Species")
@@ -279,6 +279,7 @@ namespace MyVetApp.Migrations
                         .WithMany("Pets")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired()
                         .HasConstraintName("FK_Pets_OwnerId");
 
                     b.Navigation("Owner");
