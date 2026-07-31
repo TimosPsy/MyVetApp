@@ -25,7 +25,7 @@ BEGIN TRY
 	    ('VIEW_OWNER', 'View owner'),
 	    ('EDIT_OWNER', 'Modify existing owner'),
 	    ('DELETE_OWNER', 'Remove a owner'),
-	    ('VIEW_ONLY_OWNER', 'View only own owner details'),
+	    ('VIEW_ONLY_OWNER', 'View only owner details'),
 		('VIEW_ONLY_OWN_PETS', 'View only own pet details'),
 	    ('INSERT_PET', 'Create a new pet'),
 	    ('VIEW_PETS', 'View pets list and details'),
