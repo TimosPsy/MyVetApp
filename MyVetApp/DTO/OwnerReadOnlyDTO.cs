@@ -8,6 +8,5 @@ namespace MyVetApp.DTO
         public string PhoneNumber { get; set; } = null!;
         public string VatNumber { get; set; } = null!;
         public int UserId { get; set; }
-        public User User { get; set; } = null!;
     }
 }
