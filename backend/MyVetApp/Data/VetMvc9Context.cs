@@ -35,11 +35,11 @@ public class VetMvc9Context : DbContext
         {
             entity.Property(e => e.Name).HasMaxLength(20);
             entity.Property(e => e.Species).HasMaxLength(15);
-            entity.Property(e => e.Breed).HasMaxLength(15);
+            entity.Property(e => e.Breed).HasMaxLength(50);
             entity.Property(e => e.Gender).HasMaxLength(10);
             entity.Property(e => e.IsNeutered).HasDefaultValue(false);
             entity.Property(e => e.Weight);
-            entity.Property(e => e.MicrochipNumber).HasMaxLength(50);
+            entity.Property(e => e.MicrochipNumber).HasMaxLength(15);
 
             entity.HasOne(e => e.Owner)
                 .WithMany(p => p.Pets)

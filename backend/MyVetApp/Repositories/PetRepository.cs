@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using MyVetApp.Core;
 using MyVetApp.Data;
 using MyVetApp.Models;
 using System.Linq.Expressions;
+using System.Linq;
 
 namespace MyVetApp.Repositories
 {
@@ -17,19 +18,19 @@ namespace MyVetApp.Repositories
         {
             return await _context.Pets
                 .Include(p => p.Owner)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
 
         public async Task<Pet?> GetByMicrochipNumberAsync(string chipNumber)
         {
             return await _context.Pets
-                .Where(p => p.MicrochipNumber == chipNumber)
+                .Where(p => p.MicrochipNumber == chipNumber && !p.IsDeleted)
                 .SingleOrDefaultAsync();
         }
 
         public async Task<PaginatedResult<Pet>> GetPaginatedPetsFilteredAsync(int pageNumber, int pageSize, List<Expression<Func<Pet, bool>>> predicates)
         {
-            IQueryable<Pet> query = _context.Pets;
+            IQueryable<Pet> query = _context.Pets.Where(p => !p.IsDeleted);
 
             if (predicates != null && predicates.Count > 0)
             {
@@ -38,7 +39,7 @@ namespace MyVetApp.Repositories
                     query = query.Where(predicate);
                 }
             }
-            
+
             int totalRecords = await query.CountAsync();
             int skip = (pageNumber - 1) * pageSize;
 
@@ -47,7 +48,7 @@ namespace MyVetApp.Repositories
                 .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
-            
+
             return new PaginatedResult<Pet>()
             {
                 Data = data,

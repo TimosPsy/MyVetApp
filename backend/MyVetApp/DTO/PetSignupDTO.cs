@@ -12,7 +12,7 @@ namespace MyVetApp.DTO
         [StringLength(15, ErrorMessage = "Species cannot exceed 15 characters.")]
         public string? Species { get; set; }
 
-        [StringLength(15, ErrorMessage = "Breed cannot exceed 15 characters.")]
+        [StringLength(50, ErrorMessage = "This field cannot exceed 50 characters.")]
         public string? Breed { get; set; }
 
         [Required(ErrorMessage = "The {0} field is required.")]
@@ -25,8 +25,8 @@ namespace MyVetApp.DTO
         [Range(0.1, 100.0, ErrorMessage = "Weight must be between 0.1 and 100 kg.")]
         public double? Weight { get; set; }
 
-        [StringLength(50, ErrorMessage = "Microchip Number cannot exceed 50 characters.")]
-        [RegularExpression(@"^\d*$", ErrorMessage = "Microchip Number must contain only digits.")]
+        [StringLength(15, MinimumLength = 15, ErrorMessage = "Microchip Number must be exactly 15 digits.")]
+        [RegularExpression(@"^\d{15}$", ErrorMessage = "Microchip Number must contain only digits.")]
         public string? MicrochipNumber { get; set; }
 
         [Required(ErrorMessage ="The Owner ID is required")]
