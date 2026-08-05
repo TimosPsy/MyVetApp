@@ -3,18 +3,18 @@ import { createContext, useContext, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { deleteCookie, getCookie, setCookie } from "../utils/cookies.ts"
 import { login } from "../api/auth.ts"; 
+import { type User} from "../types.ts"
 
-
-type User = {
-    id: string;
-    username: string;
-    capabilities: string[];
-}
 
 type JwtPayload = {
-    nameid: string;    
-    unique_name: string;
-    capabilities?: string | string[];
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
+    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+    capability: string | string[];
+    exp?: number;
+    iss?: string;
+    aud?: string;
 }
 
 type AuthContextProps = {
@@ -34,13 +34,13 @@ function readUserFromToken(token: string | null): User | null {
         const decoded = jwtDecode<JwtPayload>(token);
         
         let caps: string[] = [];
-        if (decoded.capabilities) {
-            caps = Array.isArray(decoded.capabilities) ? decoded.capabilities : [decoded.capabilities];
+        if (decoded.capability) {
+            caps = Array.isArray(decoded.capability) ? decoded.capability : [decoded.capability];
         }
 
         return {
-            id: decoded.nameid,
-            username: decoded.unique_name,
+            id: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
+            username: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
             capabilities: caps,
         };
     } catch {
