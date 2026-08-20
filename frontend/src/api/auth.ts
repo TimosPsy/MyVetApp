@@ -1,10 +1,11 @@
+import type { UserReadOnly, UserRegisterData } from "@/schemas/users.ts";
 import type {LoginFields, LoginResponse} from "../schemas/auth.ts";
 
 const API_URL = import.meta.env.VITE_API_URL
 
 export async function login(fields: LoginFields): Promise<LoginResponse> {
 
-    const res = await fetch(`${API_URL}/login`, {
+    const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json" 
@@ -23,4 +24,26 @@ export async function login(fields: LoginFields): Promise<LoginResponse> {
         throw new Error(detail)
     }
     return await res.json()
+}
+
+export async function registerOwnerUser(data: UserRegisterData): Promise<UserReadOnly> {
+    const res = await fetch(`${API_URL}/auth/register/owner`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        let errorMessage = "Registration failed.";
+        try {
+            const errorData = await res.json();
+            if (errorData && errorData.detail) {
+                errorMessage = errorData.detail;
+            }
+        } catch {}
+        
+        throw new Error(errorMessage)
+    }
+    return await res.json();
 }
