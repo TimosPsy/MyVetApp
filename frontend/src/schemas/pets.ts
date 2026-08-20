@@ -5,29 +5,25 @@ export const petSchema = z.object({
 
   name: z.string().min(1, "Name is required").max(20, "Name cannot exceed 20 characters"),
 
-  species: z.string()
-    .min(1, "Species is required")
-    .refine((val): val is "Dog" | "Cat" => val === "Dog" || val === "Cat", {
-      message: "Species must be either Dog or Cat",
-    }),
+  species: z.enum(["Dog", "Cat"], {
+    message: "This field is required."
+  }),
 
   breed: z.string().max(50, "Breed cannot exceed 50 characters").optional().nullable(),
 
-  gender: z.string()
-    .min(1, "Gender is required")
-    .refine((val): val is "Male" | "Female" => val === "Male" || val === "Female", {
-      message: "Gender must be either Male or Female",
-    }),
+  gender: z.enum(["Male", "Female"], {
+    message: "This field is required."
+  }),
 
   isNeutered: z.boolean().default(false),
 
-  weight: z.number().positive("Weight must be a positive number").optional().nullable(),
+  weight: z.number().positive("Weight must be a positive number"),
 
   microchipNumber: z.string()
     .regex(/^\d{15}$/, "Microchip must be exactly 15 digits")
+    .or(z.literal(""))
     .optional()
-    .nullable()
-    .or(z.literal("")), // Allows empty string from form inputs
+    .nullable(),
     
   ownerId: z.number().int().positive()
 });
