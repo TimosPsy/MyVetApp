@@ -114,6 +114,8 @@ namespace MyVetApp
 
             builder.Services.AddAuthorization(options =>
             {
+                options.AddPolicy("VIEW_USER", p => p.RequireClaim("capability", "VIEW_USER"));
+                options.AddPolicy("VIEW_USERS", p => p.RequireClaim("capability", "VIEW_USERS"));
                 options.AddPolicy("INSERT_PET", p => p.RequireClaim("capability", "INSERT_PET"));
                 options.AddPolicy("DELETE_PET", p => p.RequireClaim("capability", "DELETE_PET"));
                 options.AddPolicy("UPDATE_PET", p => p.RequireClaim("capability", "EDIT_PET"));
