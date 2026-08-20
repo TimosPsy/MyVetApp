@@ -10,7 +10,8 @@ namespace MyVetApp.Configuration
         public MapperConfig()
         {
             CreateMap<User, UserReadOnlyDTO>()
-                .ForMember(dest => dest.UserRole, opt => opt.MapFrom(src => src.Role.Name));
+                .ForMember(dest => dest.UserRole, opt => opt.MapFrom(src => src.Role.Name))
+                .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.Owner != null ? src.Owner.Id : (int?)null));
 
             CreateMap<OwnerSignupDTO, User>()
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId!.Value));
