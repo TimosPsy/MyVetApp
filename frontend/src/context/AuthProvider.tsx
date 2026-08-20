@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { deleteCookie, getCookie, setCookie } from "../utils/cookies.ts"
 import { login } from "../api/auth.ts"; 
-import { type User} from "../types.ts"
+import { type User} from "../types/user.ts"
 
 
 type JwtPayload = {
@@ -62,15 +62,15 @@ export const AuthProvider = ({children}: {children: React.ReactNode}) => {
     const loginUser = async (fields: LoginFields) => {
         const res = await login(fields); 
 
-        setCookie("access_token", res.access_token, {
+        setCookie("access_token", res.token, {
             expires: 1,
             SameSite: "Lax",
             secure: false,
             path: "/",
         });
         
-        setAccessToken(res.access_token);
-        setUser(readUserFromToken(res.access_token));
+        setAccessToken(res.token);
+        setUser(readUserFromToken(res.token));
     }
 
     const logoutUser = () => {
