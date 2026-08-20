@@ -17,6 +17,7 @@ namespace MyVetApp.Repositories
         
         public async Task<User?> GetUserByUsernameAsync(string username) =>
             await _context.Users
+            .AsNoTracking()
             .Include(u => u.Role)
             .ThenInclude(r => r.Capabilities)
             .FirstOrDefaultAsync(u => u.Username == username);
@@ -25,7 +26,10 @@ namespace MyVetApp.Repositories
             List<Expression<Func<User, bool>>> predicates)
         {
             int totalRecords;
-            IQueryable<User> query = _context.Users;
+            IQueryable<User> query = _context.Users
+            .AsNoTracking()
+            .Include(u => u.Role)
+            .Include(u => u.Owner);
 
             if (predicates != null && predicates.Count > 0)
             {
