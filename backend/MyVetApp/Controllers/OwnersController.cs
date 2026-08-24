@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyVetApp.DTO;
+using MyVetApp.Exceptions;
 using MyVetApp.Services;
+using System.Security.Claims;
 
 namespace MyVetApp.Controllers
 {
@@ -49,16 +51,36 @@ namespace MyVetApp.Controllers
         /// <response code="403">Forbidden access (User lacks the VIEW_PETS capability).</response>
         /// <response code="404">Owner with the specified ID was not found.</response>
         [HttpGet("{ownerId}/pets")]
-        [Authorize(Policy ="VIEW_PETS")]
+        [Authorize]
         [ProducesResponseType(typeof(List<PetReadOnlyDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<PetReadOnlyDTO>>> GetOwnerPets(int ownerId)
         {
+            EnsureCanViewPets(ownerId);
+
             var pets = await _applicationService.OwnerService.GetOwnerPetsAsync(ownerId);
-            
             return Ok(pets);
+        }
+
+        private void EnsureCanViewPets(int targetOwnerId)
+        {
+            var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (currentUserRole is "ADMIN" or "EMPLOYEE" || User.HasClaim("capability", "VIEW_PETS"))
+            {
+                return;
+            }
+
+            var currentOwnerId = User.FindFirst("ownerId")?.Value;
+
+            if (currentOwnerId == targetOwnerId.ToString() && currentUserRole == "OWNER")
+            {
+                return;
+            }
+
+            throw new EntityForbiddenException("Pet", "You do not have permission to view these pets.");
         }
     }
 }
