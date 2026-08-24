@@ -18,6 +18,7 @@ namespace MyVetApp.Repositories
         public async Task<User?> GetUserByUsernameAsync(string username) =>
             await _context.Users
             .AsNoTracking()
+            .Include(u => u.Owner)
             .Include(u => u.Role)
             .ThenInclude(r => r.Capabilities)
             .FirstOrDefaultAsync(u => u.Username == username);
