@@ -121,6 +121,7 @@ namespace MyVetApp
                 options.AddPolicy("UPDATE_PET", p => p.RequireClaim("capability", "EDIT_PET"));
                 options.AddPolicy("VIEW_OWNER", p => p.RequireClaim("capability", "VIEW_OWNER"));
                 options.AddPolicy("VIEW_PETS", p => p.RequireClaim("capability", "VIEW_PETS"));
+                options.AddPolicy("VIEW_ONLY_OWN_PETS", p => p.RequireClaim("capability", "VIEW_ONLY_OWN_PETS"));
             });
 
             var app = builder.Build();
