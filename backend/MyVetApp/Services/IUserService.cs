@@ -7,6 +7,8 @@ namespace MyVetApp.Services
 {
     public interface IUserService
     {
+        Task<UserReadOnlyDTO> RegisterStaffUserAsync(UserSignupDTO dto);
+
         Task<User> VerifyAndGetUserAsync(UserLoginDTO credentials);
 
         Task<UserReadOnlyDTO?> GetUserByUsernameAsync(string username);

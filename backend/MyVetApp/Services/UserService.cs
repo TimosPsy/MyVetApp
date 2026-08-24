@@ -118,6 +118,11 @@ namespace MyVetApp.Services
                 new Claim(ClaimTypes.Role, user.Role.Name)
             };
 
+            if (user.Owner != null)
+            {
+                claimsInfo.Add(new Claim("ownerId", user.Owner.Id.ToString()));
+            }
+
             //Add role capabilities in JWT token
             if (user.Role?.Capabilities != null)
             {
@@ -138,5 +143,32 @@ namespace MyVetApp.Services
             // Serialize the token to a string
             return new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
         }
+
+        public async Task<UserReadOnlyDTO> RegisterStaffUserAsync(UserSignupDTO dto)
+        {
+            var user = _mapper.Map<User>(dto);
+
+            var existingUser = await _unitOfWork.UserRepository.GetUserByUsernameAsync(user.Username);
+            if (existingUser != null)
+            {
+                throw new EntityAlreadyExistsException("User", $"User with username {existingUser.Username} already exists");
+            }
+
+            var existingEmail = await _unitOfWork.UserRepository.GetUserByEmailAsync(user.Email);
+            if (existingEmail != null)
+            {
+                throw new EntityAlreadyExistsException("User", $"User with email {user.Email} already exists.");
+            }
+
+            user.Password = _encryptionUtil.Encrypt(user.Password);
+
+            await _unitOfWork.UserRepository.AddAsync(user);
+            await _unitOfWork.SaveAsync();
+
+            _logger.LogInformation("Staff user {Username} signed up successfully.", user.Username);
+
+            return _mapper.Map<UserReadOnlyDTO>(user);
+        }
+
     }
 }
