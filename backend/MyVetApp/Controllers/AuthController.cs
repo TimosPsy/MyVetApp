@@ -41,6 +41,28 @@ namespace MyVetApp.Controllers
         }
 
         /// <summary>
+        /// Registers a new staff account (Admin or Employee).
+        /// </summary>
+        [HttpPost("register/staff")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(UserReadOnlyDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<UserReadOnlyDTO>> RegisterStaff(
+            [FromBody] UserSignupDTO userSignupDTO)
+        {
+            var createdUser = await _applicationService.UserService
+                .RegisterStaffUserAsync(userSignupDTO);
+
+            return CreatedAtAction(
+                actionName: nameof(UsersController.GetUserById),
+                controllerName: "Users",
+                routeValues: new { id = createdUser.Id },
+                value: createdUser);
+        }
+
+
+        /// <summary>
         /// Authenticates a user and returns a JWT token.
         /// </summary>
         [HttpPost("login")]
