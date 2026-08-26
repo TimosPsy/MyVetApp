@@ -12,6 +12,7 @@ type JwtPayload = {
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
     "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
     capability: string | string[];
+    ownerId?: string;
     exp?: number;
     iss?: string;
     aud?: string;
@@ -28,7 +29,7 @@ type AuthContextProps = {
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined)
 
-function readUserFromToken(token: string | null): User | null {
+export function readUserFromToken(token: string | null | undefined): User | null {
     if (!token) return null;
     try {
         const decoded = jwtDecode<JwtPayload>(token);
@@ -41,7 +42,9 @@ function readUserFromToken(token: string | null): User | null {
         return {
             id: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
             username: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+            role: decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
             capabilities: caps,
+            ownerId: decoded.ownerId ? Number(decoded.ownerId) : null
         };
     } catch {
         return null;
