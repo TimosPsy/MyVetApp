@@ -103,7 +103,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
   return (
     <div className="flex items-center justify-between w-full py-4 bg-white px-4 border rounded-md shadow-sm">
       <div className="text-sm text-slate-500">
-        Σελίδα {currentPage} από {totalPages}
+        Page {currentPage} of {totalPages}
       </div>
       <Pagination className="w-auto m-0">
         <PaginationContent>
