@@ -1,5 +1,6 @@
-import type { UserReadOnly, UserRegisterData } from "@/schemas/users.ts";
+import type {StaffRegisterData, UserReadOnly} from "@/schemas/users.ts";
 import type {LoginFields, LoginResponse} from "../schemas/auth.ts";
+import type { OwnerRegisterData } from "@/schemas/owners.ts";
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -26,7 +27,10 @@ export async function login(fields: LoginFields): Promise<LoginResponse> {
     return await res.json()
 }
 
-export async function registerOwnerUser(data: UserRegisterData): Promise<UserReadOnly> {
+/**
+ * Registers a new owner user in the system.
+ */
+export async function registerOwnerUser(data: OwnerRegisterData): Promise<UserReadOnly> {
     const res = await fetch(`${API_URL}/auth/register/owner`, {
         method: "POST",
         headers: {
@@ -34,6 +38,7 @@ export async function registerOwnerUser(data: UserRegisterData): Promise<UserRea
         },
         body: JSON.stringify(data),
     });
+
     if (!res.ok) {
         let errorMessage = "Registration failed.";
         try {
@@ -43,7 +48,33 @@ export async function registerOwnerUser(data: UserRegisterData): Promise<UserRea
             }
         } catch {}
         
-        throw new Error(errorMessage)
+        throw new Error(errorMessage);
+    }
+    return await res.json();
+}
+
+/**
+ * Registers a new staff member (Admin/Employee) in the system.
+ */
+export async function registerStaffUser(data: StaffRegisterData): Promise<UserReadOnly> {
+    const res = await fetch(`${API_URL}/auth/register/staff`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        let errorMessage = "Registration failed.";
+        try {
+            const errorData = await res.json();
+            if (errorData && errorData.detail) {
+                errorMessage = errorData.detail;
+            }
+        } catch {}
+        
+        throw new Error(errorMessage);
     }
     return await res.json();
 }
