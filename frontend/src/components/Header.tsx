@@ -12,8 +12,7 @@ const Header = () => {
 
                     <nav className="flex items-center gap-4 text-white font-medium">
                         <Link to="/">Home</Link>
-                        <Link to="/users">Users</Link>
-                        <Link to="/pets">Pets</Link>
+                        <Link to="/profile">Profile</Link>
                         <AuthButton/>
                     </nav>
                 </div>
