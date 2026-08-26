@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 
-export const userRegisterSchema = z.object({
+export const staffRegisterSchema = z.object({
   username: z.string()
     .min(1, "Username is required")
     .min(2, "Username must be between 2 and 50 characters"),
@@ -24,13 +24,6 @@ export const userRegisterSchema = z.object({
     .min(1, "Lastname is required")
     .min(2, "Lastname must be between 2 and 50 characters"),
 
-  phoneNumber: z.string()
-    .min(1, "Phone number is required"),
-
-  vatNumber: z.string()
-    .min(1, "Vat Number field is required")
-    .regex(/^\d{9}$/, "Vat Number must be exactly 9 digits and contain only digits"),
-
   roleId: z.coerce.number({
       message: "Please select a role"
     })
@@ -38,7 +31,7 @@ export const userRegisterSchema = z.object({
     .positive("Please select a role")
 });
 
-export type UserRegisterData = z.infer<typeof userRegisterSchema>;
+export type StaffRegisterData = z.infer<typeof staffRegisterSchema>;
 
 
 export const userReadOnlySchema = z.object({
@@ -54,7 +47,7 @@ export const userReadOnlySchema = z.object({
   
   userRole: z.string(),
 
-  ownerId: z.number().int()
+  ownerId: z.number().int().nullable()
 });
 
 export type UserReadOnly = z.infer<typeof userReadOnlySchema>;
