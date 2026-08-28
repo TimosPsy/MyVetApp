@@ -13,7 +13,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
-
 namespace MyVetApp
 {
     public class Program
@@ -53,8 +52,6 @@ namespace MyVetApp
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                //options.IncludeErrorDetails = builder.Environment.IsDevelopment();  // χρήσιμο σε development, δείχνει αναλυτικά errors. Στο production βάζουμε false.
-                // options.SaveToken = true; αποθηκεύει το token στο HttpContext ώστε να μπορούμε να το διαβάσουμε μετά με HttpContext.GetTokenAsync("access_token")
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -80,7 +77,6 @@ namespace MyVetApp
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
 
-                // options.SupportNonNullableReferenceTypes(); // default true > .NET 6
                 options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
                     new OpenApiSecurityScheme
                     {
@@ -128,13 +124,10 @@ namespace MyVetApp
 
             app.UseExceptionHandler();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
-                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyVet App v1"));
-                //app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v2/swagger.json", "MyVet App v2"));
             }
 
             app.UseHttpsRedirection();
@@ -144,6 +137,51 @@ namespace MyVetApp
             app.UseAuthorization();
 
             app.MapControllers();
+
+            // --- AUTOMATIC MIGRATIONS AND SQL SEEDING ON STARTUP ---
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<Data.VetMvc9Context>();
+
+                    context.Database.Migrate();
+
+                    var seedFiles = new string[]
+                    {
+                        "V001_InitialVetDB_Seed.sql",
+                        "V002__AddViewUserCapabilities.sql",
+                        "V003__AddPetCapabilitiesToEmployeeAndOwner.sql"
+                    };
+
+                    var baseDir = AppContext.BaseDirectory;
+                    var scriptsPath = Path.Combine(baseDir, "Resources", "db");
+
+                    foreach (var fileName in seedFiles)
+                    {
+                        var filePath = Path.Combine(scriptsPath, fileName);
+
+                        if (File.Exists(filePath))
+                        {
+                            var sql = File.ReadAllText(filePath);
+
+                            context.Database.ExecuteSqlRaw(sql);
+                        }
+                        else
+                        {
+                            var logger = services.GetRequiredService<ILogger<Program>>();
+                            logger.LogWarning($"Seed file '{fileName}' was not found at path: {filePath}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred during database migration or database seeding.");
+                }
+            }
+            // -----------------------------------------------------------------------
 
             app.Run();
         }
