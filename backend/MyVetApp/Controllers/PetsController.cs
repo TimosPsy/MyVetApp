@@ -111,7 +111,7 @@ namespace MyVetApp.Controllers
         }
 
         /// <summary>
-        /// Retrieves a paginated and filtered list of pets based on criteria and capabilities.
+        /// Retrieves a paginated list of pets with optional filtering.
         /// </summary>
         /// <param name="pageNumber">The page number to retrieve.</param>
         /// <param name="pageSize">The number of records per page.</param>
