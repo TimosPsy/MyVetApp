@@ -1,11 +1,11 @@
-﻿# Build output (αντίστοιχο του target στη Java)
+﻿# Build output
 **/bin/
 **/obj/
 
 # Git
 .git/
 
-# IDE (αντίστοιχο του .idea)
+# IDE
 .vs/
 *.user
 
@@ -20,6 +20,3 @@
 docker-compose.yml
 Dockerfile
 .dockerignore
-
-# Test project
-SchoolApp.Tests
