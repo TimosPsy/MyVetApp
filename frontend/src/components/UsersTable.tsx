@@ -5,11 +5,12 @@ import type { UserReadOnly } from '@/schemas/users';
 
 type UsersTableProps = {
   users: UserReadOnly[];
+  selectedRole: string;
   canViewPets: boolean;
   onNavigate: (url: string, options?: { state: any }) => void;
 };
 
-export const UsersTable = ({ users, canViewPets, onNavigate }: UsersTableProps) => {
+export const UsersTable = ({ users, selectedRole, canViewPets, onNavigate }: UsersTableProps) => {
 
   const getRoleBadgeStyle = (role: string) => {
     switch (role?.toUpperCase()) {
@@ -24,6 +25,8 @@ export const UsersTable = ({ users, canViewPets, onNavigate }: UsersTableProps) 
     }
   };
 
+  const isOwnerSelected = selectedRole?.toUpperCase() === 'OWNER';
+
   return (
     <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
       <Table>
@@ -34,13 +37,13 @@ export const UsersTable = ({ users, canViewPets, onNavigate }: UsersTableProps) 
             <TableHead className="font-semibold text-slate-700">Username</TableHead>
             <TableHead className="font-semibold text-slate-700">Email</TableHead>
             <TableHead className="font-semibold text-slate-700">Role</TableHead>
-            <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>
+            {isOwnerSelected && <TableHead className="text-right font-semibold text-slate-700">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center h-32 text-slate-400 font-medium">
+              <TableCell colSpan={isOwnerSelected ? 6 : 5} className="text-center h-32 text-slate-400 font-medium">
                 No users found matching the selected filters.
               </TableCell>
             </TableRow>
@@ -56,22 +59,24 @@ export const UsersTable = ({ users, canViewPets, onNavigate }: UsersTableProps) 
                     {user.userRole}
                   </span>
                 </TableCell>
-                <TableCell className="text-right space-x-2">
-                  {user.userRole?.toUpperCase() === 'OWNER' && user.ownerId && canViewPets && (
-                    <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2 bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200 hover:border-amber-300 transition-all shadow-sm"
-                    onClick={() => {
-                        sessionStorage.setItem(`owner_name_${user.ownerId}`, `${user.firstname} ${user.lastname}`);
-                        onNavigate(`/owners/${user.ownerId}/pets`);
-                    }}
-                    >
-                      <PawPrint className="w-4 h-4 text-amber-600"/>
-                      View Pets
-                    </Button>
-                  )}
-                </TableCell>
+                {isOwnerSelected && (
+                  <TableCell className="text-right space-x-2">
+                    {user.userRole?.toUpperCase() === 'OWNER' && user.ownerId && canViewPets && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200 hover:border-amber-300 transition-all shadow-sm"
+                        onClick={() => {
+                            sessionStorage.setItem(`owner_name_${user.ownerId}`, `${user.firstname} ${user.lastname}`);
+                            onNavigate(`/owners/${user.ownerId}/pets`);
+                        }}
+                      >
+                        <PawPrint className="w-4 h-4 text-amber-600"/>
+                        View Pets
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))
           )}
