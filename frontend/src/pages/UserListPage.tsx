@@ -100,6 +100,7 @@ export const UsersListPage = () => {
       ) : (
         <UsersTable 
           users={users} 
+          selectedRole={selectedRole}
           canViewPets={hasCapability('VIEW_PETS')} 
           onNavigate={navigate} 
         />
