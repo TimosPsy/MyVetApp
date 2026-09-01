@@ -4,10 +4,9 @@ import { Button } from "../components/ui/button.tsx";
 import { useForm } from "react-hook-form";
 import { type LoginFields, loginSchema } from "../schemas/auth.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth, readUserFromToken} from "../context/AuthProvider.tsx";
+import { useAuth} from "../context/AuthProvider.tsx";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { getCookie } from "@/utils/cookies.ts";
 
 export default function LoginPage() { 
     const { loginUser } = useAuth();
