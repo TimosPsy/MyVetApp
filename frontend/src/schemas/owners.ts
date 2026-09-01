@@ -31,11 +31,7 @@ export const ownerRegisterSchema = z.object({
     .min(1, "Vat Number field is required")
     .regex(/^\d{9}$/, "Vat Number must be exactly 9 digits and contain only digits"),
 
-  roleId: z.coerce.number({
-      message: "Please select a role"
-    })
-    .int()
-    .positive("Please select a role")
+  roleId: z.coerce.number().int().positive()
 });
 
 export type OwnerRegisterData = z.infer<typeof ownerRegisterSchema>;
