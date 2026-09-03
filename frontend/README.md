@@ -1,89 +1,96 @@
 # MyVet App – Frontend
 
-React single-page app for the veterinary clinic system. Talks to the backend REST API for
-auth, staff/user management, owners, and pets.
+React single-page application (SPA) for the veterinary clinic system.
 
-## Tech Stack
+## 🛠️ Tech Stack
+* **Core:** React 19, TypeScript, Vite 8, React Router
+* **Forms & Validation:** React Hook Form + Zod
+* **Styling & UI:** Tailwind CSS 4 (`@tailwindcss/vite`, no config file), shadcn/ui (Radix primitives), `lucide-react` icons, `next-themes` (dark mode)
+* **Auth & State:** `jwt-decode`, `js-cookie`, Sonner (toasts)
 
-React 19 · TypeScript · Vite 8 · React Router · React Hook Form + Zod · Tailwind CSS 4 ·
-shadcn/ui (Radix primitives) · `jwt-decode` · `js-cookie` · Sonner (toasts).
+## 🌐 Endpoints & Development URL
+When running, the frontend interface is accessible at:
+* **Development Server:** <http://localhost:5173>
 
-## Running the Frontend (Docker)
+---
 
-This project has no Compose file of its own — it is built and run from the orchestrator at
-the repository root. From there:
+## 🐳 Running via Docker
 
+The frontend has no independent Compose file and is managed from the repository root.
+
+### Quick Start (Full Stack):
 ```bash
-docker compose up --build -d          # frontend + backend + database
+cd .. # Go to repository root
+docker compose up --build -d
 ```
 
-The dev server is served at <http://localhost:5173>. The container bind-mounts `./frontend`
-with polling-based file watching, so edits hot-reload without a rebuild. `VITE_API_URL` is
-injected by Compose (defaults to `http://localhost:8081/api/v1`).
+* **Hot-Reloading:** The container bind-mounts `./frontend` using polling-based file watching (`CHOKIDAR_USEPOLLING=true`), allowing code edits to refresh instantly without container rebuilds.
+* **API Connection:** `VITE_API_URL` is automatically injected by Compose, defaulting to `http://localhost:8081/api/v1`.
 
-## Local Development (Without Docker)
+---
 
-### Prerequisites
-- **Node.js 22+** and npm.
-- A reachable backend API (run it via `docker compose up -d webapp` from the repo root, or
-  locally — see [../backend/README.md](../backend/README.md)).
+## 💻 Local Development (Without Docker Host)
 
-### Setup
+### Prerequisites:
+* **Node.js 22+** and npm installed locally.
+* A running backend instance (either via `docker compose up -d webapp` or running the .NET host directly).
+
+### Configuration Setup:
 ```bash
-cp .env.example .env        # Windows: copy .env.example .env
+cp .env.example .env
+# Windows (cmd): copy .env.example .env
 ```
 
-Set `VITE_API_URL` to the API base, including the version segment:
-
+`.env.example` ships with an empty `VITE_API_URL=""`. Set the target API base URL in your local `.env`:
+```env
+VITE_API_URL="http://localhost:8081/api/v1" # Use http://localhost:5123/api/v1 if the backend runs directly on the .NET host
 ```
-VITE_API_URL="http://localhost:8081/api/v1"
-```
 
-(Use `http://localhost:5123/api/v1` if you run the backend locally without Docker.)
-
-### Run
+### Launch Execution:
 ```bash
 npm install
 npm run dev
 ```
 
-Vite serves the app at <http://localhost:5173>.
+### Package Scripts:
 
-### Scripts
-| Command           | Purpose                                  |
-| ----------------- | ---------------------------------------- |
-| `npm run dev`     | Start the Vite dev server with HMR       |
-| `npm run build`   | Type-check (`tsc -b`) and build to `dist/` |
-| `npm run preview` | Serve the production build locally       |
-| `npm run lint`    | Run ESLint                               |
+| Command | Purpose |
+| :--- | :--- |
+| `npm run dev` | Starts Vite dev server with Hot Module Replacement (HMR) |
+| `npm run build` | Compiles TypeScript (`tsc -b`) and bundles production build to `dist/` |
+| `npm run preview` | Previews the compiled production build locally |
+| `npm run lint` | Runs ESLint checks |
 
-## Project Structure
+---
 
-```
+## 📂 Project Architecture
+
+```text
 src/
-  api/         fetch wrappers per resource (auth, users, owners, pets)
-  schemas/     Zod schemas + inferred types for forms and API payloads
-  context/     AuthProvider — login state, JWT decode, capability checks
-  components/  shared components + ui/ (shadcn primitives)
-  pages/       route screens
-  utils/       cookie helpers
-  types/       shared type declarations
+  ├── main.tsx      # App entry (mounts <App/>, providers)
+  ├── App.tsx       # Router + route/guard wiring
+  ├── index.css     # Tailwind entry + theme tokens
+  ├── api/          # Fetch wrappers per resource (auth, users, owners, pets)
+  ├── schemas/      # Zod validation schemas + inferred payload types
+  ├── context/      # AuthProvider (login state, JWT decoding, capability parsing)
+  ├── components/   # Shared layouts, ProtectedRoute, UI primitives (shadcn)
+  ├── pages/        # Route screen view components
+  ├── lib/          # shadcn helpers (cn() class merger)
+  ├── utils/        # Cookie management helpers
+  └── types/        # Global type definitions (also src/types.ts)
 ```
+*Note: Path alias `@/` maps to `src/` (configured in `vite.config.ts` and `tsconfig.*.json`).*
 
-Path alias: `@/` → `src/` (configured in `vite.config.ts` and `tsconfig`).
+---
 
-## Auth & Routing
+## 🔐 Authentication & Guarded Routing
+* **Token Storage:** Upon login, the signed JWT is saved into the `access_token` cookie (1-day expiration).
+* **State Hydration:** `AuthProvider` decodes the token claims into a runtime `user` state object containing `role`, `capabilities`, and `ownerId`.
+* **Route Protection:** Access control is managed via `ProtectedRoute`. Passing a `requiredCapability` prop (e.g., `VIEW_USERS`) dynamically blocks unauthorized navigation, routing unprivileged requests to `/unauthorized`.
 
-- On login the API returns a JWT, stored in the `access_token` cookie (1-day expiry).
-  `AuthProvider` decodes it into a `user` with `role`, `capabilities`, and `ownerId`.
-- `ProtectedRoute` guards routes; pass `requiredCapability` (e.g. `VIEW_USERS`, `VIEW_PETS`)
-  to gate on a specific capability. Unauthorized users are redirected to `/unauthorized`.
-- Register a staff or owner account from the UI, or via the API — see the backend README.
+---
 
-## Notes
-
-Local/academic project: the auth cookie is non-`secure` and `SameSite=Lax` for HTTP dev,
-and there is no token refresh (the session ends when the cookie expires).
-
-For full-stack setup (Frontend + Backend + DB) via Docker, see the root
-[README.md](../README.md).
+## ⚠️ Limitations & Disclaimers
+* Project designed for academic/local testing.
+* Auth cookies omit the `secure` flag and use `SameSite=Lax` to facilitate local HTTP environment development.
+* Token refresh mechanics are omitted; sessions terminate immediately upon cookie expiration.
