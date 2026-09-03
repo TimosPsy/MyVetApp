@@ -1,86 +1,89 @@
 # MyVet App – Backend API
 
-REST API for the veterinary clinic application built with ASP.NET Core / .NET 10. Handles authentication, authorization, staff management, owners, and pets.
+REST API for the veterinary clinic application built with **ASP.NET Core / .NET 10**. Handles authentication, authorization, staff management, owners, and pets.
 
-## Tech Stack
+## 🛠️ Tech Stack
+* **Framework:** ASP.NET Core Web API (.NET 10)
+* **Database & ORM:** EF Core 10 & SQL Server 2022
+* **Security:** JWT (capability-based policies), BCrypt password hashing
+* **Tooling:** AutoMapper, Serilog, Swagger
 
-ASP.NET Core Web API (.NET 10) · EF Core 10 (code-first migrations) · SQL Server 2022 · JWT authentication with capability-based policies · BCrypt password hashing · AutoMapper · Serilog · Swagger.
+## 🌐 Service Addresses
+When running via Docker Compose, endpoints are mapped as follows:
 
-## Service Addresses
+| Service | Address | Credentials |
+| :--- | :--- | :--- |
+| **Swagger UI** | <http://localhost:8081/swagger> | — |
+| **API Base** | `http://localhost:8081/api/v1` | — |
+| **SQL Server** | `localhost:1437` | **SA:** `sa` / `SA_PASSWORD`<br>**App User:** `vet_app_user` / `DB_USER_PASSWORD` |
 
-When the application is started via the root Docker Compose orchestrator, the API services are exposed at:
+---
 
-| Service    | Address                                   |
-| ---------- | ----------------------------------------- |
-| Swagger UI | <http://localhost:8081/swagger>           |
-| API base   | `http://localhost:8081/api/v1`            |
-| SQL Server | `localhost:1437` — `sa` / `SA_PASSWORD`   |
+## 🐳 Running via Docker
 
-## Running the Backend (Docker)
+The backend setup uses a one-shot **init / setup container** (`sql-setup`) for maximum isolation: it runs once before the API, provisions the database and a restricted login, then exits. The API never connects as `sa`.
 
-This project has no Compose file of its own — it is built and run from the orchestrator at
-the repository root. To start **only** the backend (SQL Server + API, without the frontend):
+### Startup Pipeline (Enforced automatically):
+1. **`sqlserver`:** Spins up and runs health checks.
+2. **`sql-setup`:** Runs once, executes `innit_db.sql` to dynamically provision the DB and `vet_app_user` (utilizing `sqlcmd -v`), then exits.
+3. **`webapp`:** Connects securely using the restricted `vet_app_user` credentials.
 
+### Quick Start:
 ```bash
-cd ..                                 # repo root, where docker-compose.yml lives
-cp .env.example .env                  # Windows: copy .env.example .env
-# edit .env: set JWT_SECRET, and SA_PASSWORD == DB_USER_PASSWORD (both strong)
-docker compose up --build -d webapp   # also starts sqlserver via depends_on
+cd .. # Go to repository root
+cp .env.example .env
+# Edit .env and set distinct strong passwords for SA_PASSWORD and DB_USER_PASSWORD
+docker compose up --build -d webapp
 ```
 
-Stop with `docker compose stop webapp`; follow logs with `docker compose logs -f webapp`;
-reset the database with `docker compose down -v` (migrations and seeds re-run on next start).
+* **Logs:** `docker compose logs -f webapp` (or `sql-setup` for DB initialization logs).
+* **Stop:** `docker compose stop webapp`
+* **Hard Reset:** `docker compose down -v` (Wipes the volume; DB setup and EF migrations re-run on next start).
 
-## Database Migrations & Seeding
+---
 
-On startup, the API container automatically applies pending EF Core migrations and runs the idempotent SQL seed scripts located in `MyVetApp/Resources/db/`.
+## 🔄 Database Migrations & Seeding
+* **Schema:** Applied automatically on startup via `context.Database.Migrate()`.
+* **Seed Scripts:** Idempotent scripts (`IF NOT EXISTS`) populate system metadata (Roles/Capabilities) from `Resources/db/`.
+* **User Accounts:** **No application users are auto-generated**. You must manually trigger the staff registration endpoint to create the first admin.
 
-⚠️ **Database User & Seeding Notes:**
-- The SQL seed scripts strictly populate system metadata such as roles, capabilities, and their respective mappings. 
-- **No application user accounts are created automatically.** You must manually register your first staff account via the registration endpoint to log into the system.
-- The .NET application authenticates against SQL Server using `DB_USER` / `DB_USER_PASSWORD` from your root `.env`. Since `DB_USER` defaults to `sa`, **`DB_USER_PASSWORD` must be identical to `SA_PASSWORD`** or the API cannot connect.
+---
 
-## Authentication & Authorization
+## 🔐 Auth Flow
+1. **Register:** `POST /api/v1/auth/register/staff` (Anonymous in development; requires `roleId` 1=ADMIN, 2=EMPLOYEE, 3=OWNER).
+2. **Login:** `POST /api/v1/auth/login` ➡️ Returns a signed JWT.
+3. **Authorize:** Paste the token into Swagger UI under **Authorize** as `Bearer <token>`. Endpoints are restricted via dedicated capability policies.
 
-1. **Staff Registration:** `POST /api/v1/auth/register/staff` (Anonymous during development). Body payload requires: `username`, `email`, `password`, `firstname`, `lastname`, and `roleId` (`1`=ADMIN, `2`=EMPLOYEE, `3`=OWNER).
-2. **Login:** `POST /api/v1/auth/login` - Returns a signed JWT.
-3. **Usage:** In Swagger UI, click **Authorize** and paste your token, or pass it via the header `Authorization: Bearer <token>`.
+---
 
-The issued token carries the user's role and a `capability` claim per specific permission. Endpoints are guarded by targeted capability policies (e.g., `INSERT_PET`, `VIEW_USERS`). Refer to the Swagger UI for complete endpoint signatures and access control requirements.
+## 💻 Local Development (Without Docker)
 
-## Local Development (Without Docker)
+### Prerequisites:
+* **.NET 10 SDK** installed locally.
+* Spin up only the DB infrastructure: `docker compose up -d sql-setup` (pulls in `sqlserver` via `depends_on`, provisions `vet_app_user`, then exits).
 
-If you prefer to run the API on your host for active debugging (Visual Studio, JetBrains Rider, or plain `dotnet run`):
-
-### Prerequisites
-- **.NET 10 SDK** installed locally.
-- A SQL Server instance. Simplest option is to run *just* the database container from the repo root:
-  ```bash
-  docker compose up -d sqlserver
-  ```
-
-### Connection string
-`MyVetApp/appsettings.Development.json` holds the `DevConnection` string used when `ASPNETCORE_ENVIRONMENT=Development`. The Compose database only creates the `sa` login, so point the string at `sa` / your `SA_PASSWORD`:
-
+### Connection String:
+The `DevConnection` string in `MyVetApp/appsettings.Development.json` is used when `ASPNETCORE_ENVIRONMENT=Development`. It targets the `vet_app_user` login and follows this shape:
 ```
-Server=localhost,1437;Database=MyVetMVCDB;User=sa;Password=<SA_PASSWORD>;TrustServerCertificate=True
+Server=localhost,1437;Database=MyVetMVCDB;User=vet_app_user;Password=<DB_USER_PASSWORD>;TrustServerCertificate=True;MultipleActiveResultSets=true;
 ```
+* Replace `<DB_USER_PASSWORD>` with the value you set in the root `.env` before `sql-setup` ran. Keep this file out of commits, or override it locally via user-secrets / the `ConnectionStrings__DevConnection` environment variable instead of editing it in place.
+* `MultipleActiveResultSets=true` is required by the app's EF Core + raw-SQL execution pattern and mirrors the container connection string.
+* If you started only `sqlserver` (no `sql-setup`), either run `sql-setup`, execute `Resources/db/innit_db.sql` manually, or point the string at `sa` / your `SA_PASSWORD`.
 
-(or manually create the SQL login it currently references inside the container).
-
-### Run
+### Launch:
 ```bash
 cd MyVetApp
 dotnet run
 ```
-
-The API listens on `http://localhost:5123` (see `Properties/launchSettings.json`), so Swagger is at <http://localhost:5123/swagger>. On startup it applies EF Core migrations and runs the seed scripts, exactly as the container does.
-
-## Notes
-
-Local/academic project, not production-hardened: `register/staff` is anonymous (anyone can create an admin), `appsettings.Development.json` holds a dev connection string, and HTTPS redirection is on while the container serves HTTP only.
-
-**Not yet done:** automated tests, admin-gated staff registration, externalized secrets, CI/CD.
+* API hosts on `http://localhost:5123`
+* Swagger UI accessible at <http://localhost:5123/swagger>
 
 ---
-💡 *For instructions on spinning up the full-stack ecosystem (Frontend + Backend + DB) via Docker, please refer to the root [README.md](../README.md).*
+
+## ⚠️ Limitations & Disclaimers
+* Project designed for academic/local environments.
+* `register/staff` is open (anonymous admin registration).
+* HTTPS redirection is enabled in code while the container serves HTTP only.
+* Dev connection string and passwords are committed in `appsettings.Development.json` / `.env.example`.
+* Automated tests, externalized secrets vaults, and CI/CD pipelines are pending implementation.
