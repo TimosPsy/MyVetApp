@@ -21,17 +21,24 @@ services:
     volumes:
       - ./backend/MyVetApp/Resources/db/innit_db.sql:/usr/config/innit_db.sql:ro # Mounts the initialization script from the backend project folder as Read-Only (:ro)
     environment:
-      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
-      DB_USER_PASSWORD: "${DB_USER_PASSWORD}" # Sourced dynamically from the root .env file
+      # sqlcmd reads the SA password from SQLCMDPASSWORD automatically -> no -P flag, no shell quoting
+      SQLCMDPASSWORD: "${SA_PASSWORD}"
+      # sqlcmd resolves $(AppUserPassword) in the script from this env var when it isn't passed via -v
+      AppUserPassword: "${DB_USER_PASSWORD}"
     depends_on:
       sqlserver:
         condition: service_healthy # Wait for the primary database container to pass its health check
-    # Note: Connects as 'sa', injects DB_USER_PASSWORD via sqlcmd -v flag, executes script, then exits
-    entrypoint: >
-      /bin/bash -c "/opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa
-      -P \"$${MSSQL_SA_PASSWORD}\" -C -b 
-      -v AppUserPassword=\"$${DB_USER_PASSWORD}\" 
-      -i /usr/config/innit_db.sql"
+    # Note: Connects as 'sa' (password via SQLCMDPASSWORD), runs the init script, then exits
+    entrypoint:
+      - "/opt/mssql-tools18/bin/sqlcmd"
+      - "-S"
+      - "sqlserver"
+      - "-U"
+      - "sa"
+      - "-C"
+      - "-b"
+      - "-i"
+      - "/usr/config/innit_db.sql"
  
   webapp:
     build: 
